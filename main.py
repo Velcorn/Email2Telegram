@@ -4,11 +4,14 @@ If received mail from sender, send Telegram message with subject.
 """
 
 from imap_tools import MailBox
+from datetime import datetime, timedelta
 from telethon.sync import TelegramClient
+from time import sleep
 from config import api_config, gmail_config
 
 # Configure this as you like!
 sender = "abfuhrkalender@srhh.de"
+seconds = 1800
 
 # Config stuff
 imap_url = "imap.gmail.com"
@@ -30,19 +33,34 @@ def main():
     except IndexError:
         pass
     if mail is None:
-        return "No mail from sender found!"
-    # Send subject to specified number
-    print("Sending Telegram message...")
-    with TelegramClient('session', api_id, api_hash) as client:
-        client.send_message('me', mail.subject)
-    # Move mail to trash
-    print("Moving mail to trash...")
-    mailbox.move([msg.uid for msg in mailbox.fetch(f'FROM "{sender}"')], "[Google Mail]/Trash")
+        print("No mail from sender found!")
+    else:
+        # Send subject to specified number
+        print("Sending Telegram message...")
+        with TelegramClient('session', api_id, api_hash) as client:
+            client.send_message('me', mail.subject)
+        # Move mail to trash
+        print("Moving mail to trash...")
+        mailbox.move([msg.uid for msg in mailbox.fetch(f'FROM "{sender}"')], "[Google Mail]/Trash")
     # Logout from Gmail
     mailbox.logout()
     # Sleep for x seconds
-    return "All done!"
+    print(f"Sleeping for {timedelta(seconds=seconds)}...\n")
+    sleep(seconds)
+
+    return True
 
 
 if __name__ == "__main__":
-    print(main())
+    # Track uptime
+    start = datetime.now()
+    print('Started service!')
+    # Bool for loop
+    boolean = True
+    while boolean:
+        end = datetime.now()
+        uptime = end - start
+        uptime -= timedelta(microseconds=uptime.microseconds)
+        print(f"Uptime: {uptime}")
+        boolean = main()
+    print("Stopped service!")
